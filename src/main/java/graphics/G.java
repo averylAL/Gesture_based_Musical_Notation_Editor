@@ -1,7 +1,6 @@
 package graphics;
 
-import java.awt.Color;
-import java.awt.Graphics;
+import java.awt.*;
 import java.io.Serializable;
 import java.util.Random;
 
@@ -10,6 +9,7 @@ import java.util.Random;
  */
 public class G implements Serializable {
   public static void spline(Graphics g, int ax, int ay, int bx, int by, int cx, int cy, int n){
+    /* parabolic spline*/
     if(n == 0){g.drawLine(ax, ay, cx, cy);return;}
     int abx = (ax + bx) / 2, aby = (ay + by) / 2;
     int bcx = (bx + cx) / 2, bcy = (by + cy) /2;
@@ -24,6 +24,17 @@ public class G implements Serializable {
     g.setColor(Color.WHITE);
     g.fillRect(0, 0, 5000, 5000);
   }
+
+  public static Polygon poly = new Polygon();
+  public static void pSpline(int xa,int ya, int xb, int yb, int xc, int yc, int n){
+    if(n == 0){poly.addPoint(xa, ya); poly.addPoint(xc, yc); return;}
+    int xab = (xa + xb)/2, yab = (ya+yb)/2, xbc = (xb + xc)/2, ybc = (yb+yc)/2;
+    int xabc = (xab + xbc)/2, yabc = (yab + ybc)/2;
+    pSpline(xa, ya, xab, yab, xabc, yabc, n-1);
+    pSpline(xabc, yabc, xbc, ybc, xc, yc, n-1);
+  }
+
+
   // ------------------ V --------------------
   public static class V implements Serializable {
     public static Transform T = new Transform();
@@ -42,9 +53,15 @@ public class G implements Serializable {
       private void setScale(int oW, int oH, int nW, int nH) {
         n = (nW > nH) ? nW :nH;
         d = (oW > oH) ? oW :oH;
+        if (d == 0) {d = 1;} //debug
+
       }
       private int setOff(int oX, int oW, int nX, int nW) {
-        return (-oX - oW/2)*n/d + nX + nW/2;
+        if (d == 0) {
+          System.err.println("Error: Division by zero detected in setOff()!");
+          return 0;  // avoid / 0
+        }
+        return (-oX - oW / 2) * n / d + nX + nW / 2;
       }
       public void set(VS oVS, VS nVS) {
         setScale(oVS.size.x, oVS.size.y, nVS.size.x, nVS.size.y);
@@ -56,13 +73,11 @@ public class G implements Serializable {
         dx = setOff(from.h.lo, from.h.size(), to.loc.x, to.size.x);
         dy = setOff(from.v.lo, from.v.size(), to.loc.y, to.size.y);
       }
-
-
-    }
-  }
+    } // end of Transform
+  } // end of V
 
   // ------------------ VS --------------------
-  public static class VS {
+  public static class VS implements Serializable {
     public V loc, size;
     public VS(int x, int y, int w, int h) {loc = new V(x, y); size = new V(w, h);}
     public void fill(Graphics g, Color c) {
@@ -79,7 +94,6 @@ public class G implements Serializable {
     public int yH() {return loc.y + size.y;}
     public int yM() {return loc.y + size.y / 2;}
   }
-
   // ------------------ LoHi --------------------
   public static class LoHi {
     public int lo, hi;
@@ -91,7 +105,6 @@ public class G implements Serializable {
     }
     public int size(){return (hi - lo) > 0 ? (hi - lo) : 0;} // if true return (hi-lo) or 0
   }
-
   // ------------------ BBox --------------------
   public static class BBox {
     public LoHi h, v;
@@ -103,7 +116,6 @@ public class G implements Serializable {
     public void draw(Graphics g) {g.drawRect(h.lo, v.lo, h.hi - h.lo, v.hi - v.lo);}
 
   }
-
   // ------------------ PL --------------------
   public static class PL implements Serializable {
     public V[] points;
@@ -124,10 +136,19 @@ public class G implements Serializable {
       }
       drawNDots(g, n);
     }
-
-    public void draw(Graphics g) {drawN(g, points.length);}
+    public void draw(Graphics g) {drawN(g, size());}
     public void transform() {for (int i = 0; i < points.length; i++) {points[i].setT(points[i]);}}
 
-  }
+  }//end of PL
+  // ------------------------ Hierarchical Coordinate ---------------------
+  public static class HC{
+    public static HC ZERO = new HC(null,0);
 
+    public HC dad;
+    public int dv;  // delta value from dad
+
+    public HC(HC dad, int dv) {this.dad = dad; this.dv = dv;}
+
+    public int v() {return dad == ZERO ? 0 : dad.v()+dv;} // the value of the coordinate
+  }
 }

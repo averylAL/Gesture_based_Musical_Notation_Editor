@@ -45,12 +45,14 @@ public class Ink implements I.Show, Serializable {
       G.V.T.set(BUFFER.bBox, NCS);
       transform();
     }
+
     public void drawAt(Graphics g, G.VS vs) {
       G.V.T.set(NCS, vs); //  move from normalized CS to vs
       for (int i = 1; i < N; i++) {
         g.drawLine(points[i - 1].tx(), points[i - 1].ty(), points[i].tx(), points[i].ty());
       }
     }
+
     public int dist(Norm n) {
       int res = 0;
       for (int i = 0; i < N; i++) {
@@ -60,6 +62,7 @@ public class Ink implements I.Show, Serializable {
       }
       return res;
     }
+
     public void blend(Norm norm, int nBlend) {
       for (int i = 0; i < N; i++) { points[i].blend(norm.points[i], nBlend); } // blend two norms
     }

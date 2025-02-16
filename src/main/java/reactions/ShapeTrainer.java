@@ -49,7 +49,11 @@ public class ShapeTrainer extends WinApp {
     public void mouseDragged(MouseEvent me) { Ink.BUFFER.drag(me.getX(),me.getY()); repaint(); }
     public void mouseReleased(MouseEvent me) {
         Ink.BUFFER.up(me.getX(),me.getY());
-        if(curState != ILLEGAL) {
+        Ink ink = new Ink();
+        Shape.DB.train(curName, ink.norm); // this is safe because legal name testing is done in Database
+        setState(); // possibly convert previously UNKNOWN to KNOWN
+        repaint();
+/*        if(curState != ILLEGAL) {
             Ink ink = new Ink();
             Shape.Prototype proto;
             if (pList == null) {
@@ -66,7 +70,7 @@ public class ShapeTrainer extends WinApp {
             }
             setState();
         }
-        repaint();
+        repaint();*/
     }
 
     public void keyTyped(KeyEvent ke) {

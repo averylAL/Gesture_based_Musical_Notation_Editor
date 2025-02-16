@@ -12,12 +12,14 @@ import reactions.Shape;
 public class PaintInk extends WinApp {
   public static Shape.Prototype.List pList = new Shape.Prototype.List();
   public static Ink.List inkList = new Ink.List();
-  static {
+  public static String recognized = "";
+//  static {
 //    inkList.add(new Ink());
-  } // code run at initialization time
+//  } // code run at initialization time
   public PaintInk() {
     super("PaintInk", UC.mainWindowWidth, UC.mainWindowHeight);
   }
+
   public void paintComponent(Graphics g) {
     G.clearScreen(g);
     g.setColor(Color.RED);
@@ -31,6 +33,7 @@ public class PaintInk extends WinApp {
       g.setColor(dist > UC.noMatchDist ? Color.RED : Color.BLACK);
       g.drawString("Dist: " + dist, 600, 60);
       pList.show(g);
+      g.drawString(recognized, 700, 40);
 
     }
   }
@@ -40,6 +43,9 @@ public class PaintInk extends WinApp {
   public void mouseReleased(MouseEvent me) {
     Ink.BUFFER.up(me.getX(), me.getY());
     Ink ink = new Ink();
+    Shape s = Shape.recognize(ink);
+    recognized = "Recog: " + ((s != null)?s.name : "UN-RECOGNIZED");
+
     Shape.Prototype proto;
     inkList.add(ink);
     if(pList.bestDist(ink.norm) < UC.noMatchDist) {
